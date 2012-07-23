@@ -14,30 +14,6 @@ This package requires Numpy.
 There is a degree of uncertainty in the placement due to the conversion of continuous distribution to
 a discrete one. The atoms are printed in PDB format with the beta term reflecting the uncertainty.
 
-Files:
-./._placevent.py
-placevent.py
-GNU_General_Public_License
-modules/
-modules/__init__.py
-modules/__init__.pyc
-modules/djsgrid.py
-modules/djsgrid.pyc
-modules/djspdb.py
-modules/djspdb.pyc
-tests/
-tests/1L2Y/
-tests/1L2Y/1L2Y.O.1.dx
-tests/1L2Y/ref/
-tests/1L2Y/test/
-tests/1L2Y/test.sh
-tests/1L2Y/test/O.pdb
-tests/1L2Y/ref/O.pdb
-
-
-
-
-
 //    Copyright (C) 2012 Daniel J. Sindhikara
 //
 //    This program is free software: you can redistribute it and/or modify
