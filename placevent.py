@@ -41,8 +41,8 @@ from math import *
 import sys
 import numpy as np
 
-import modules.djsgrid as grid
-import modules.djspdb as pdb 
+import modules.grid as grid
+import modules.pdb as pdb 
 
 
 def converttopop(distribution,delta,conc):
