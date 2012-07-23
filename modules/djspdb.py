@@ -1,1 +1,0 @@
-/Users/sindhikara/Desktop/Dropbox/scripts/modules/djspdb.py

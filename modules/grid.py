@@ -1,4 +1,3 @@
-dd
 '''Daniel J. Sindhikara
     sindhikara@gmail.com
     Does stuff related to dx files

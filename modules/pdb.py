@@ -2,6 +2,10 @@
     Dan Sindhikara sindhikara@gmail.com
     Does PDB related stuff
     Todo: 
+1) Integrate better with AMBER modules (e.g. guessatom, atom radii, etc)
+
+
+
 '''
 import math
 
@@ -33,19 +37,31 @@ Atom serial number. Atom name. Alternate location indicator. Residue name. Chain
         self.charge=charge
         self.hetatm=hetatm
         self.ister=ister # this is the last Atom of the unit. (the next line in the pdb will be say "TER"
-    def makestring(self):
+    def __str__(self):
+        '''
+    Returns a PDB format string
+        '''
         if not self.hetatm :
             pdbstring="ATOM  %5d %4s%1s%3s %1c%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f           %1s%2d\n" % (self.serial,self.name,self.altloc,self.resname,self.chainid,self.resseq,self.icode,self.x,self.y,self.z,self.occ,self.tfac,self.element,self.charge)
         else :
             pdbstring="HETATM%5d %4s%1s%3s %1c%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f           %1s%2d\n" % (self.serial,self.name,self.altloc,self.resname,self.chainid,self.resseq,self.icode,self.x,self.y,self.z,self.occ,self.tfac,self.element,self.charge)
         if self.ister :
             pdbstring="%sTER\n" % pdbstring
+    def makestring(self):
+        '''
+    Antiquated function same as __str__
+        '''
+        print "# Warning, antiquated function"
+        return "%s" % self
+
+
         return(pdbstring)
         
 
 def readcoordinates(pdbfilename):
     ''' Given a pdbfilename, return list of coordinates (2dlist)
 This function is less functional than readpdbintoAtoms()
+It only stores coordinates
     '''
     pdbfile=open(pdbfilename)
     coords=[]
