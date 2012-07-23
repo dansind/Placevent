@@ -152,11 +152,8 @@ def main():
     shellindices=grid.precomputeshellindices(numshells) 
     popzero,totalpop,gridvolume=converttopop(distributions[0],delta,conc)
     placedcenters=doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff)
-    print len(placedcenters)
-    for i,center in enumerate(placedcenters):
-        print center.makestring(), 
-        #mystring=makepdbstring(i+1,"A","BCD"," ",1,center.x,center.y,center.z,center.gi,center.g0,"A",0.0)
-        #print mystring[:-1]
+    for center in placedcenters:
+        print str(center)[:-2]# [:-2] is to get rid of the \n
 
 if __name__ == '__main__' :
     main()
