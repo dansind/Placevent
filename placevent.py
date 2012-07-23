@@ -77,7 +77,9 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
     placedcenters=[]
     finished=0
     print "# Doing placement..."
-    while finished==0 : 
+    index = 0
+    while finished==0 :
+        index+=1
         mymax=popi.max()
         maxi,maxj,maxk=np.argwhere(popi==mymax)[0]
         topindices.append([maxi,maxj,maxk])
@@ -121,7 +123,7 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
         mygi=mymax/(conc*gridvolume) #remaining correlation
         #betaterm=float(indexradius)*float(delta[0])# Really hope all deltas are the same
         #betaterm=float(fiftypercentradius)*float(delta[0])
-        placedcenters.append(pdb.Atom(serial=len(placedcenters),x=maxi*delta[0]+origin[0],y=maxj*delta[1]+origin[1],z=maxk*delta[2]+origin[2],occ=myg0,tfac=mygi))
+        placedcenters.append(pdb.Atom(serial=len(placedcenters),resseq=index,x=maxi*delta[0]+origin[0],y=maxj*delta[1]+origin[1],z=maxk*delta[2]+origin[2],occ=myg0,tfac=mygi))
         #above can be modded to use grid
         if(myg0<grcutoff) :
             finished=1 # It's dilute enough already if the highest is less than g(r)=1.5
