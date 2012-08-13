@@ -72,8 +72,7 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
     popi=np.array(popzero)# popi will change, popzero will stay constant
     max = 0
     topindices = [[[]]]
-    #print "# printing g(r) in beta column"
-    #print "# printing g(r)_i in volume column"
+    print "# Initial 3D-RISM g(r) will be printed in occupancy column"
     placedcenters=[]
     finished=0
     print "# Doing placement..."

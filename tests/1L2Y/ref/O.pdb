@@ -4,6 +4,7 @@
 # precalculating indices lying on 20  concentric shells
 # volume of each grid point is  0.125  cubic angstroms
 # There are approximately  3974.27501734  sites within the 3D-RISM grid
+# Initial 3D-RISM g(r) will be printed in occupancy column
 # Doing placement...
 ATOM      0    D BCD 1   1       2.937  -2.635  -0.544 17.46 17.46           D 
 ATOM      1    D BCD 1   2      -8.063   6.365  -2.044 14.49 14.49           D 
