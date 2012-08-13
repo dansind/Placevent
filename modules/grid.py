@@ -214,7 +214,11 @@ estimate the value at that coordinate
         totalweight+=myweight
     value=0.0
     for i,mycindex in enumerate(cindex):
-        value+=distribution[mycindex[0]][mycindex[1]][mycindex[2]]*weights[i]/totalweight
+        try:
+            value+=distribution[mycindex[0]][mycindex[1]][mycindex[2]]*weights[i]/totalweight
+        except:
+            print "Failed to find gridpoint at",mycindex[0],mycindex[1],mycindex[2]
+            print "coordinate=",coord
     return(value)
 
 
