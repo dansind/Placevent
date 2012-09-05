@@ -133,7 +133,7 @@ def returncenters(dxfilename,molar,grcutoff):
 given dxfilename and molarity, return placed centers as Atom objects
     '''
     conc=molar*6.0221415E-4
-    distributions,origin,delta,gridcount=grid.readdx(dxfilename)
+    distributions,origin,delta,gridcount=grid.readdx([dxfilename])
     if molar > 10 :  # it's unlikely we'll need more than 20 shells
         numshells = 20
     else :
@@ -154,7 +154,7 @@ def main():
         grcutoff=float(sys.argv[3]) #setting cutoff
     else :
         grcutoff=1.5
-    dxfilename=[sys.argv[1]]
+    dxfilename=sys.argv[1]
     molar=float(sys.argv[2])
     print "# your dx file is",dxfilename,"molarity is",molar,"M"
     placedcenters=returncenters(dxfilename,molar,grcutoff)
