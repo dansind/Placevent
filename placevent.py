@@ -128,6 +128,22 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
             finished=1 # It's dilute enough already if the highest is less than g(r)=1.5
     return(placedcenters)
 
+def returncenters(dxfilename,molar,grcutoff):
+    '''
+given dxfilename and molarity, return placed centers as Atom objects
+    '''
+    conc=molar*6.0221415E-4
+    distributions,origin,delta,gridcount=grid.readdx(dxfilename)
+    if molar > 10 :  # it's unlikely we'll need more than 20 shells
+        numshells = 20
+    else :
+        numshells = 50
+    print "# precalculating indices lying on",numshells," concentric shells"
+    shellindices=grid.precomputeshellindices(numshells)
+    popzero,totalpop,gridvolume=converttopop(distributions[0],delta,conc)
+    return(doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff))
+
+
 def main():
     print "# input format placevent.py <dxfile> <concentration M (molar)> [cutoff g(r) (default 1.5)]"
     print "# concentration (#/A^3) ~= molarity*6.022E-4"
@@ -141,16 +157,7 @@ def main():
     dxfilename=[sys.argv[1]]
     molar=float(sys.argv[2])
     print "# your dx file is",dxfilename,"molarity is",molar,"M"
-    conc=molar*6.0221415E-4
-    distributions,origin,delta,gridcount=grid.readdx(dxfilename)
-    if molar > 10 :  # it's unlikely we'll need more than 20 shells
-        numshells = 20
-    else :
-        numshells = 50
-    print "# precalculating indices lying on",numshells," concentric shells"
-    shellindices=grid.precomputeshellindices(numshells) 
-    popzero,totalpop,gridvolume=converttopop(distributions[0],delta,conc)
-    placedcenters=doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff)
+    placedcenters=returncenters(dxfilename,molar,grcutoff)
     for center in placedcenters:
         print str(center)[:-2]# [:-2] is to get rid of the \n
 
