@@ -66,6 +66,8 @@ def converttopop(distribution,delta,conc):
     print "# There are approximately ",totalpop," sites within the 3D-RISM grid"
     return(popzero,totalpop,gridvolume)   
 
+
+
 def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
     ''' Does actual placement, returns array of "Atom" objects to be printed later 
     '''
@@ -134,14 +136,16 @@ given dxfilename and molarity, return placed centers as Atom objects
     '''
     conc=molar*6.0221415E-4
     distributions,origin,delta,gridcount=grid.readdx([dxfilename])
-    if molar > 10 :  # it's unlikely we'll need more than 20 shells
-        numshells = 20
-    else :
-        numshells = 50
-    print "# precalculating indices lying on",numshells," concentric shells"
-    shellindices=grid.precomputeshellindices(numshells)
+    #if molar > 10 :  # it's unlikely we'll need more than 20 shells
+    #    numshells = 20
+    #else :
+    #    numshells = 50
+    #print "# precalculating indices lying on",numshells," concentric shells
+    #shellindices=grid.precomputeshellindices(numshells)
+    #shellindices=grid.shellindices()
+
     popzero,totalpop,gridvolume=converttopop(distributions[0],delta,conc)
-    return(doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff))
+    return(doplacement(popzero,conc,gridvolume,origin,delta,grid.shellindices,grcutoff))
 
 
 def main():

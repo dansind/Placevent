@@ -1,7 +1,6 @@
 # input format placevent.py <dxfile> <concentration M (molar)> [cutoff g(r) (default 1.5)]
 # concentration (#/A^3) ~= molarity*6.022E-4
 # your dx file is 1L2Y.O.1.dx molarity is 55.5 M
-# precalculating indices lying on 20  concentric shells
 # volume of each grid point is  0.125  cubic angstroms
 # There are approximately  3974.27501734  sites within the 3D-RISM grid
 # Initial 3D-RISM g(r) will be printed in occupancy column

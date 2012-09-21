@@ -37,17 +37,16 @@ count is total population to remove
         '''
         if self.concentration <= 0.0 :
             return("Cannot Evacuate!, no concentration available")
-        #Determine if multple centers:
-        if type(centers[0]) not list:
+        #Determine if multple centers
+        if not isinstance(centers[0],list) :
             centers=[centers] #Convert it to a list, now it's the same regardless
-        if type(centers[0][0]) is float : # if float, convert it to relevant indices
+        if isinstance(centers[0][0],float):  # if float, convert it to relevant indices
             for i in range(centers):
                 centers[i]=self.nearestgridindices(centers[i])
         while amount > 0.0 : # equivalent to remaining in Placevent
             for center in centers:
-                for 
+                pass 
             
-
     
 def dx2Grid(dxfilename):
     '''
@@ -221,7 +220,6 @@ i.e. 0 = [0,0,0]
 at index radius
     This will make evacuation phase faster
     '''
-    print "This module is superceded by separate precomputeshells.py"
     from math import sqrt
     shellindices=[[[0,0,0]]]
     for index in range(1,maxindex):
@@ -236,8 +234,27 @@ at index radius
         shellindices.append(indicesinthisshell)
     return(shellindices)
 
-shellindices=precomputeshells.readshellindices()
+def createprecomputedindicespickle():
+    '''
+stores a local file called shells.pickle
+    '''
+    shellindices=precomputeshellindices(40)
+    from pickle import dump
+    import os
+    outfile=os.path.join(os.path.dirname(__file__),"shells.pickle")
+    f=open(outfile,"wb")
+    dump(shellindices,f)
+    f.close()
 
+def readshellindices():
+    import os
+    infile=os.path.join(os.path.dirname(__file__),"shells.pickle")
+    from pickle import load
+    f=open(infile,"rb")
+    shellindices=load(f)
+    return(shellindices)
+
+shellindices=readshellindices()
 
 
 def linearinterpolatevalue(distribution,origin,deltas,coord):
