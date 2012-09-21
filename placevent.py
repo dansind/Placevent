@@ -92,7 +92,7 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
                 for indices in shellindices[indexradius]: # search only through indices lying on shell
                     try :
                         availablepopulation+=popi[maxi+indices[0],maxj+indices[1],maxk+indices[2]]
-                    except :
+                    except IndexError :
                         print "# Stopping! Population search went outside grid. You may want to try again with a higher concentration"
                         remainder = -1 # cue quitting search   
                         finished=1
