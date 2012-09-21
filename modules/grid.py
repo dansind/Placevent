@@ -4,6 +4,59 @@
 automatically detects and reads gzipped dx files
     '''
 
+
+class Grid:
+    '''
+Contains volumetric data
+    '''
+    def __init__(self,distribution,origin,gridcount,deltas,concentration=0):
+        self.distribution=distribution
+        self.origin=origin
+        self.gridcount=gridcount
+        self.deltas=deltas
+        self.concentration=concentration # in molar
+
+    def getvalue(self,coord):
+        return(linearinterpolatevalue(self.distribution,self.origin,self.deltas,coord)) 
+
+    def writedx(self):
+        print "This function not yet enabled"
+        pass
+    def nearestgridindices(self,coord):
+        '''
+Given a 3D cartesian coordinate, return nearest grid indices
+        '''
+        gridindices=[int(round((coord[i]-self.origin[i])/self.deltas[i])) for i in range(3)]
+        return(gridindices)
+
+    def evacuate(self,centers,amount=1.0):
+        '''
+Allow multiple centers
+allow either center indices or cartesian
+count is total population to remove
+        '''
+        if self.concentration <= 0.0 :
+            return("Cannot Evacuate!, no concentration available")
+        #Determine if multple centers:
+        if type(centers[0]) not list:
+            centers=[centers] #Convert it to a list, now it's the same regardless
+        if type(centers[0][0]) is float : # if float, convert it to relevant indices
+            for i in range(centers):
+                centers[i]=self.nearestgridindices(centers[i])
+        while amount > 0.0 : # equivalent to remaining in Placevent
+            for center in centers:
+                for 
+            
+
+    
+def dx2Grid(dxfilename):
+    '''
+Reads a dx file into a Grid class object 
+    '''
+    # for now Ghetto rigged to use old readdx function
+    distributions,origin,deltas,gridcount=readdx([dxfilename])
+    return(Grid(distributions[0],origin,gridcount,deltas))
+
 def readdx(filenames):
     '''
     Reads one or more dx files into memory
@@ -168,6 +221,7 @@ i.e. 0 = [0,0,0]
 at index radius
     This will make evacuation phase faster
     '''
+    print "This module is superceded by separate precomputeshells.py"
     from math import sqrt
     shellindices=[[[0,0,0]]]
     for index in range(1,maxindex):
@@ -181,6 +235,10 @@ at index radius
                         indicesinthisshell.append([i,j,k])
         shellindices.append(indicesinthisshell)
     return(shellindices)
+
+shellindices=precomputeshells.readshellindices()
+
+
 
 def linearinterpolatevalue(distribution,origin,deltas,coord):
     '''given a 3d coordinate, using a linear interpolation from the 8 nearest gridpoints,
