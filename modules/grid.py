@@ -331,7 +331,7 @@ stores a local file called shells.pickle
     from pickle import dump
     import os
     outfile=os.path.join(os.path.dirname(__file__),"shells.pickle")
-    f=open(outfile,"wb")
+    fteprecomputedindicespickle=open(outfile,"wb")
     dump(shellindices,f,2)
     f.close()
 
@@ -342,7 +342,6 @@ def readshellindices():
     f=open(infile,"rb")
     shellindices=load(f)
     return(shellindices)
-
 
 def getlinearweightsandindices(origin,deltas,coord):
     '''
