@@ -34,29 +34,29 @@ printing g(r) in beta spot
 
 
 TODO: 
-
-
 '''
 from math import *
 import sys
 import numpy as np
-
 import modules.grid as grid
 import modules.pdb as pdb 
 
 
 def converttopop(distribution,delta,conc):
-    ''' Convert distribution function to population function
-    output numpy array, total population as float
+    ''' 
+Convert distribution function to population function using concentration.
+Output: 
+1) Population function (numpy array)
+2) Expected total population in grid (float)
+3) Single voxel volume (float) 
     '''
     xlen=len(distribution)
     ylen=len(distribution[0])
     zlen=len(distribution[0][0])
     popzero = [[[0.0 for z in range(zlen)] for y in range(ylen)] for x in range(xlen)]
     gridvolume=delta[0]*delta[1]*delta[2]
-    print "# volume of each grid point is ",gridvolume," cubic angstroms"
+    print "# Volume of each voxel is ",gridvolume," cubic angstroms"
     # z fast, y med, x slow
-    #     #convert to population array
     totalpop=0;
     for i in range(xlen) :
         for j in range(ylen) :
@@ -69,7 +69,10 @@ def converttopop(distribution,delta,conc):
 
 
 def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
-    ''' Does actual placement, returns array of "Atom" objects to be printed later 
+    '''
+Does iterative portion of placement according to Placevent Algorithm
+Returns:
+Array of "Atom" Class objects
     '''
     popi=np.array(popzero)# popi will change, popzero will stay constant
     max = 0
@@ -100,7 +103,7 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
                         finished=1
                         break
             except: 
-                 print "# Stopping! Population search went outside maximum shell size. This usually happens with a very dilute concentration.  You may want to try again with a higher concentration"
+                 print "# Stopping! Population search went outside maximum shell size. This usually happens with a very dilute concentration.  You may want to try again with a higher concentration. Your results may still be reasonable."
                  remainder = -1 # cue quitting search   
                  finished=1
                  break
@@ -122,17 +125,16 @@ def doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff):
 
         myg0=popzero[maxi][maxj][maxk]/(conc*gridvolume) #actual original 
         mygi=mymax/(conc*gridvolume) #remaining correlation
-        #betaterm=float(indexradius)*float(delta[0])# Really hope all deltas are the same
-        #betaterm=float(fiftypercentradius)*float(delta[0])
         placedcenters.append(pdb.Atom(serial=len(placedcenters),resseq=index,coord=[maxi*delta[0]+origin[0],maxj*delta[1]+origin[1],maxk*delta[2]+origin[2]],occ=myg0,tfac=mygi))
         #above can be modded to use grid
         if(myg0<grcutoff) :
-            finished=1 # It's dilute enough already if the highest is less than g(r)=1.5
+            finished=1 # It's dilute enough already if the highest is less than g(r)=grcutoff
     return(placedcenters)
 
 def returncenters(dxfilename,molar,grcutoff):
     '''
-given dxfilename and molarity, return placed centers as Atom objects
+Input: dxfilename and molarity
+Returns: Placed centers as Atom objects
     '''
     conc=molar*6.0221415E-4
     shellindices=grid.readshellindices()
@@ -142,8 +144,8 @@ given dxfilename and molarity, return placed centers as Atom objects
 
 
 def main():
-    print "# input format placevent.py <dxfile> <concentration M (molar)> [cutoff g(r) (default 1.5)]"
-    print "# concentration (#/A^3) ~= molarity*6.0221415E-4"
+    print "# Input format placevent.py <dxfile> <concentration M (molar)> [cutoff g(r) (default 1.5)]"
+    print "# Concentration (#/A^3) ~= molarity*6.0221415E-4"
     if(len(sys.argv)<3) :
     	print "Insufficient arguments need 2 : ",len(sys.argv)-1
     	exit()
@@ -153,7 +155,7 @@ def main():
         grcutoff=1.5
     dxfilename=sys.argv[1]
     molar=float(sys.argv[2])
-    print "# your dx file is",dxfilename,"molarity is",molar,"M"
+    print "# Your dx file is",dxfilename,"molarity is",molar,"M"
     placedcenters=returncenters(dxfilename,molar,grcutoff)
     for center in placedcenters:
         print str(center)[:-2]# [:-2] is to get rid of the \n
