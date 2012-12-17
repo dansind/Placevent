@@ -135,22 +135,15 @@ def returncenters(dxfilename,molar,grcutoff):
 given dxfilename and molarity, return placed centers as Atom objects
     '''
     conc=molar*6.0221415E-4
+    shellindices=grid.readshellindices()
     distributions,origin,delta,gridcount=grid.readdx([dxfilename])
-    #if molar > 10 :  # it's unlikely we'll need more than 20 shells
-    #    numshells = 20
-    #else :
-    #    numshells = 50
-    #print "# precalculating indices lying on",numshells," concentric shells
-    #shellindices=grid.precomputeshellindices(numshells)
-    #shellindices=grid.shellindices()
-
     popzero,totalpop,gridvolume=converttopop(distributions[0],delta,conc)
-    return(doplacement(popzero,conc,gridvolume,origin,delta,grid.shellindices,grcutoff))
+    return(doplacement(popzero,conc,gridvolume,origin,delta,shellindices,grcutoff))
 
 
 def main():
     print "# input format placevent.py <dxfile> <concentration M (molar)> [cutoff g(r) (default 1.5)]"
-    print "# concentration (#/A^3) ~= molarity*6.022E-4"
+    print "# concentration (#/A^3) ~= molarity*6.0221415E-4"
     if(len(sys.argv)<3) :
     	print "Insufficient arguments need 2 : ",len(sys.argv)-1
     	exit()

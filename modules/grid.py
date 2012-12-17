@@ -4,13 +4,19 @@
 automatically detects and reads gzipped dx files
     '''
 
+from __future__ import division
+import numpy as np
+import os
 
 class Grid:
     '''
 Contains volumetric data
     '''
-    def __init__(self,distribution,origin,gridcount,deltas,concentration=0):
-        self.distribution=distribution
+    def __init__(self,distribution,origin,gridcount,deltas,concentration=-1.0):
+        if type(distribution) is list:
+            self.distribution=np.array(distribution)
+        elif type(distribution) is np.ndarray:
+            self.distribution=distribution
         self.origin=origin
         self.gridcount=gridcount
         self.deltas=deltas
@@ -19,34 +25,117 @@ Contains volumetric data
     def getvalue(self,coord):
         return(linearinterpolatevalue(self.distribution,self.origin,self.deltas,coord)) 
 
-    def writedx(self):
-        print "This function not yet enabled"
-        pass
+    def writedx(self,filename):
+        printdxfrom3d(self.distribution,self.origin,self.deltas,self.gridcount,filename)
+
     def nearestgridindices(self,coord):
         '''
 Given a 3D cartesian coordinate, return nearest grid indices
         '''
         gridindices=[int(round((coord[i]-self.origin[i])/self.deltas[i])) for i in range(3)]
         return(gridindices)
+    
+    def coordfromindices(self,indices):
+        return([indices[i]*self.deltas[i]+self.origin[i] for i in range(3)])
+
+    def coarseRDF(self,coord):
+        '''
+Given a 3D cartesian coordinate, return 1D distribution as list, spaced by gridspacing
+        '''
+        dist=[]
+        myindices=self.nearestgridindices(coord)
+        for shellindex in shellindices:
+            avg=0.0
+            try:
+                for indexonshell in shellindex:
+                    avg+=self.distribution[myindices[0]+indexonshell[0]][myindices[0]+indexonshell[1]][myindices[2]+indexonshell[2]]
+                avg=avg/len(shellindex)
+                dist.append(avg)
+            except IndexError:
+                break
+        return(dist)
+
+    def interpRDF(self,coord,delta,limit):
+        '''
+Given 3D cartesian coordinate (list-like object of floats), delta (float), and limit (float),
+return RDF
+by averaging linear interpolated g(r_vec) on points on spherical shell
+        '''
+        spherefilename=os.path.join(os.path.dirname(os.path.realpath(__file__)),"points","23.pts")
+        spherepoints=[[float(element) for element in line.split()] for line in open(spherefilename).readlines()]
+        rdf=[]
+        for radius in np.arange(0,limit,delta):
+            mysum=0
+            for point in spherepoints:
+                mysum+=self.getvalue([point[dim]*radius+coord[dim] for dim in range(3)])
+            rdf.append(float(mysum/len(spherepoints)))
+        return(rdf) 
+
 
     def evacuate(self,centers,amount=1.0):
         '''
 Allow multiple centers
 allow either center indices or cartesian
 count is total population to remove
+
+Hard sphere evacuation (for speed)
         '''
-        if self.concentration <= 0.0 :
-            return("Cannot Evacuate!, no concentration available")
-        #Determine if multple centers
-        if not isinstance(centers[0],list) :
-            centers=[centers] #Convert it to a list, now it's the same regardless
-        if isinstance(centers[0][0],float):  # if float, convert it to relevant indices
-            for i in range(centers):
-                centers[i]=self.nearestgridindices(centers[i])
-        while amount > 0.0 : # equivalent to remaining in Placevent
-            for center in centers:
-                pass 
-            
+        if self.concentration < 0.0 :
+            print("Cannot Evacuate!, no concentration available")
+        else:
+            #Determine if multple centers
+            if not isinstance(centers[0],list) :
+                centers=[centers] #Convert it to a list, now it's the same regardless
+            if isinstance(centers[0][0],float):  # if float, convert it to relevant indices
+                for i in range(len(centers)):
+                    centers[i]=self.nearestgridindices(centers[i])
+            bulkpop=self.concentration*6.0221415E-4*self.deltas[0]*self.deltas[1]*self.deltas[2]
+            bulkpop=bulkpop*len(centers) # since we will evacuate the same distribution for multiple sites
+            shellnumber=0
+            #Using same distribution, so why don't I make a list of indices and keep searching.
+            # Find expected shell distance 
+            # Create list of indices first
+            trueindices=[] # These are the indices in the distribution
+            # If there's one center, this will just fill up shells
+            # if there's multiple center it will hop between shells around centers
+            for shellindex in shellindices:
+                for indexonshell in shellindex:
+                    for center in centers: # looping through centers (multiplicitous sites)
+                        try:
+                            trueindices.append(tuple([indexonshell[dim]+center[dim] for dim in range(3)]))
+                        except IndexError: # (dirty) find a better way to kick out of all loops
+                            break
+
+            remaining = amount*1.0
+            for trueindex in trueindices:
+                try: 
+                    testpop=bulkpop*self.distribution[trueindex[0]][trueindex[1]][trueindex[2]]
+                except IndexError:
+                    print "Evacuation loop went outside box!"
+                if testpop < remaining : # 
+                    self.distribution[trueindex]=0.0
+                    remaining-=testpop
+                elif testpop > remaining : # This will be the last
+                    self.distribution[trueindex]*=(testpop-remaining)/testpop
+                    # Just get rid of enough to set remaining to zero
+                    print "Finished evacuation"
+                    break
+
+def rdf23dgrid(rdf,rdfdelta,griddelta,gridorigin,shellindices):
+    '''
+Convert 1d RDF to 3D grid
+    '''
+    gridcount=[len(shellindices)*2+1]*3 # + 1 is to make it odd, let 
+    mydist=np.array([[[1.0 for i in range(gridcount[0])] for j in range(gridcount[1])] for k in range(gridcount[2])])
+        
+    indexmultiplier=int(griddelta/rdfdelta) # from 3D grid index to 1D rdf index 
+    for i,shell in enumerate(shellindices): # loop through shells
+        myrdf=rdf[i*indexmultiplier]
+        for shellindex in shell:
+            distindex=tuple([shellindex[dim]+int(gridcount[dim]/2) for dim in range(3)])
+            # above will put shell 0 at the int(gridcount/2) aka numshells/2 + 1 
+            mydist[distindex]=myrdf
+    return(Grid(mydist,gridorigin,gridcount,[griddelta]*3))
     
 def dx2Grid(dxfilename):
     '''
@@ -104,7 +193,7 @@ def readdx(filenames):
                 startline=i+1
         if(startline>1) :
             break
-    distributions = [[[[0.0 for x in range(gridcount[2])] for y in range(gridcount[1])] for z in range(gridcount[0])]for w in range(len(filenames))]
+    distributions = np.array([[[[0.0 for x in range(gridcount[2])] for y in range(gridcount[1])] for z in range(gridcount[0])]for w in range(len(filenames))])
     gridvolume=deltas[0]*deltas[1]*deltas[2]
     #print "# I have to read",len(filenames)*gridcount[2]*gridcount[1]*gridcount[0],"values."
     for i, dxfilename in enumerate(filenames): 
@@ -230,9 +319,9 @@ at index radius
                 for k in range(-index,index+1):
                     #print "math.sqrt(i*i + j*j + k*k))=",math.sqrt(i*i + j*j + k*k),"index = ",index
                     if int(sqrt(i*i + j*j + k*k)) == index : # I think this will miss some
-                        indicesinthisshell.append([i,j,k])
-        shellindices.append(indicesinthisshell)
-    return(shellindices)
+                        indicesinthisshell.append((i,j,k))
+        shellindices.append(tuple(indicesinthisshell))
+    return(tuple(shellindices))
 
 def createprecomputedindicespickle():
     '''
@@ -243,7 +332,7 @@ stores a local file called shells.pickle
     import os
     outfile=os.path.join(os.path.dirname(__file__),"shells.pickle")
     f=open(outfile,"wb")
-    dump(shellindices,f)
+    dump(shellindices,f,2)
     f.close()
 
 def readshellindices():
@@ -254,45 +343,65 @@ def readshellindices():
     shellindices=load(f)
     return(shellindices)
 
-shellindices=readshellindices()
+
+def getlinearweightsandindices(origin,deltas,coord):
+    '''
+given one 3D coordinate, return 8 corner indices and weights
+that would allow direct linear interpolation
+This subroutine is separated from linearinterpolatevalue to allow
+precomputation of weights and indices
+    '''
+    ccrd=[]# coordinates of corners
+    cindices=[]# indices of corners
+    cdist=[]# distances to corner
+    #below store indices and coordinates of 8 nearby corners
+    cindices.append((int((coord[0]-origin[0])/deltas[0]),int((coord[1]-origin[1])/deltas[1]),int((coord[2]-origin[2])/deltas[0])))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas)) 
+    cindices.append((cindices[0][0]+1,cindices[0][1],cindices[0][2]))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    cindices.append((cindices[0][0],cindices[0][1]+1,cindices[0][2]))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    cindices.append((cindices[0][0],cindices[0][1],cindices[0][2]+1))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    cindices.append((cindices[0][0]+1,cindices[0][1]+1,cindices[0][2]))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    cindices.append((cindices[0][0],cindices[0][1],cindices[0][2]+1))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    cindices.append((cindices[0][0]+1,cindices[0][1],cindices[0][2]+1))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    cindices.append((cindices[0][0]+1,cindices[0][1]+1,cindices[0][2]+1))
+    ccrd.append(getcoordfromindices(cindices[-1],origin,deltas))
+    totalweight=0.0
+    weights=[]
+    exactindex=0
+    for i,crd in enumerate(ccrd): 
+        if crd == coord:
+            exactindex=1
+    if exactindex:
+        weights=[0.0 for i in range(8)]
+        weights[exactindex]=1.0
+        totalweight=1.0
+    else:
+        for crd in ccrd: # coordinates of corners
+            myweight=((coord[0]-crd[0])**2+(coord[1]-crd[1])**2+(coord[2]-crd[2])**2)**(-0.5)
+            weights.append(myweight)
+            totalweight+=myweight
+    normweights = [weight/totalweight for weight in weights]    
+    return(normweights,cindices)
+
 
 
 def linearinterpolatevalue(distribution,origin,deltas,coord):
     '''given a 3d coordinate, using a linear interpolation from the 8 nearest gridpoints,
 estimate the value at that coordinate
     '''
-    ccrd=[]# coordinates of corners
-    cindex=[]# indices of corners
-    cdist=[]# distances to corner
-    #below store indices and coordinates of 8 nearby corners
-    cindex.append([int((coord[0]-origin[0])/deltas[0]),int((coord[1]-origin[1])/deltas[1]),int((coord[2]-origin[2])/deltas[0])])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas)) 
-    cindex.append([cindex[0][0]+1,cindex[0][1],cindex[0][2]])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    cindex.append([cindex[0][0],cindex[0][1]+1,cindex[0][2]])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    cindex.append([cindex[0][0],cindex[0][1],cindex[0][2]+1])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    cindex.append([cindex[0][0]+1,cindex[0][1]+1,cindex[0][2]])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    cindex.append([cindex[0][0],cindex[0][1],cindex[0][2]+1])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    cindex.append([cindex[0][0]+1,cindex[0][1],cindex[0][2]+1])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    cindex.append([cindex[0][0]+1,cindex[0][1]+1,cindex[0][2]+1])
-    ccrd.append(getcoordfromindices(cindex[-1],origin,deltas))
-    totalweight=0.0
-    weights=[]
-    for crd in ccrd: # coordinates of corners
-        myweight=((coord[0]-crd[0])**2+(coord[1]-crd[1])**2+(coord[2]-crd[2])**2)**(-0.5)
-        weights.append(myweight)
-        totalweight+=myweight
-    value=0.0
-    for i,mycindex in enumerate(cindex):
+    weights,cindices=getlinearweightsandindices(origin,deltas,coord)
+    value=0
+    for i,mycindices in enumerate(cindices):
         try:
-            value+=distribution[mycindex[0]][mycindex[1]][mycindex[2]]*weights[i]/totalweight
+            value+=distribution[mycindices]*weights[i]
         except:
-            print "Failed to find gridpoint at",mycindex[0],mycindex[1],mycindex[2]
+            print "Failed to find gridpoint at",mycindices
             print "coordinate=",coord
     return(value)
 
