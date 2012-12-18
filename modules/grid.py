@@ -323,22 +323,22 @@ at index radius
         shellindices.append(tuple(indicesinthisshell))
     return(tuple(shellindices))
 
-def createprecomputedindicespickle():
+def createprecomputedindicesjson():
     '''
-stores a local file called shells.pickle
+stores a local file called shells.json
     '''
     shellindices=precomputeshellindices(40)
-    from pickle import dump
+    from json import dump
     import os
-    outfile=os.path.join(os.path.dirname(__file__),"shells.pickle")
-    fteprecomputedindicespickle=open(outfile,"wb")
-    dump(shellindices,f,2)
+    outfile=os.path.join(os.path.dirname(__file__),"shells.json")
+    f=open(outfile,"w")
+    dump(shellindices,f)
     f.close()
 
 def readshellindices():
     import os
-    infile=os.path.join(os.path.dirname(__file__),"shells.pickle")
-    from pickle import load
+    infile=os.path.join(os.path.dirname(__file__),"shells.json")
+    from json import load
     f=open(infile,"rb")
     shellindices=load(f)
     return(shellindices)
