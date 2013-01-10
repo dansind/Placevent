@@ -42,8 +42,8 @@ TODO:
 from math import *
 import sys
 import numpy as np
-import modules.grid as grid
-import modules.pdb as pdb
+import pmodules.grid as grid
+import pmodules.pdb as pdb
 
 
 def converttopop(distribution, delta, conc):

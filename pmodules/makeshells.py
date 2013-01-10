@@ -1,0 +1,4 @@
+import grid
+
+grid.createprecomputedindicesjson()
+
