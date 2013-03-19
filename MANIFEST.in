@@ -1,0 +1,4 @@
+include *.txt
+exclude *.git
+recursive-include placevent/tests/ *
+recursive-include pgrid/ *

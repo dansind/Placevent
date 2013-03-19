@@ -1,0 +1,13 @@
+Mar 20, 2013
+Upgrade to 1.2.2
+1) Modified grid.py to read slightly differently formatted .dx files
+
+Jan 28, 2013 
+Upgrade to 1.2
+
+1) Typo: Fixed minor error in equation for evacuation of final shell (will give slightly different results)
+2) Adapted to setup.py-based installation 
+    a) Added setup.py
+    b) Rewrote tests to allow for either installed or unzipped placevent
+    c) Uploaded to Pypi (try pip install placevent) 
+       
