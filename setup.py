@@ -7,15 +7,15 @@ config = {
     'description': 'Placevent solvent placement software',
     'author': 'Daniel J. Sindhikara',
     'url':'http://dansindhikara.com/Software/Entries/2012/6/22_Placevent_New.html',
-    #'download_url':'Where to download it.',
+    'download_url': 'http://dansindhikara.com/Software/Entries/2012/6/22_Placevent_New.html',
     'author_email': 'sindhikara@gmail.com',
-    'version': '1.2',
-    'install_requires': ['numpy', 'argparse' ],
-    'packages': ['placevent', 'placevent.tests'],
-    'package_data': {'geometry': ['Eulersets/*'], 'pprism.tests': 
-                                                ['data/AlaDP_small/*']},
-    #'py_modules': ['rismgeometry'],
-    'scripts': ['rismmap/rismmap.py', 'pprism/tests/pprism_tests.py', 'rismmap/tests/rismmap_test.sh'],
-    'name': 'rismmap'
+    'version': '1.2.2',
+    'install_requires': ['numpy'],
+    'packages': ['placevent', 'placevent.tests', 'pgrid', 'ppdb'],
+    'package_data': {'placevent.tests': ['1L2Y/diffs','1L2Y/*.*', '1L2Y/ref/*'],
+                     'pgrid': ['shells.json']},
+    'license': 'GPL',
+    'scripts': ['placevent/placevent.py', 'placevent/tests/1L2Y/placevent_test.sh'],
+    'name': 'placevent'
 }
 setup(**config)  

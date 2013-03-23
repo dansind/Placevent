@@ -37,13 +37,15 @@ g(r)_i is printed in the beta column
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 TODO: 
+Add bulk water to avoid evacuation errors
+Switch to Argparse-based method
 '''
 
 from math import *
 import sys
 import numpy as np
-import pmodules.grid as grid
-import pmodules.pdb as pdb
+import pgrid.grid as pgrid
+import ppdb.pdb as pdb
 
 
 def converttopop(distribution, delta, conc):
@@ -72,8 +74,8 @@ def converttopop(distribution, delta, conc):
                 popzero[i][j][k] = distribution[i][j][k] * conc \
                     * gridvolume
                 totalpop += popzero[i][j][k]
-    print '# There are approximately ', totalpop, \
-          ' sites within the 3D-RISM grid'
+    print '# The population is approximately ', totalpop, \
+          '  within the given grid'
     return (popzero, totalpop, gridvolume)
 
 
@@ -93,6 +95,7 @@ def doplacement(
     '''
 
     popi = np.array(popzero)  # popi (popzero) are instantaneous (initial) pops.
+    bulkvoxelpop = gridvolume * conc
     max = 0
     topindices = [[[]]]
     print '# Initial 3D-RISM g(r) will be printed in occupancy column'
@@ -115,13 +118,14 @@ def doplacement(
                         availablepopulation += popi[maxi + indices[0],
                                 maxj + indices[1], maxk + indices[2]]
                     except IndexError:
-                        print '# Stopping! Population search went outside' \
-                              ' grid.\n'
-                        print '# You may want to try again with a higher ' \
-                              'concentration\n'
-                        remainder = -1  # Cue quitting search.
-                        finished = 1
-                        break
+                        availablepopulation += bulkvoxelpop # Steal from pseudobulk
+                        #print '# Stopping! Population search went outside' \
+                        #      ' grid.\n'
+                        #print '# You may want to try again with a higher ' \
+                        #      'concentration\n'
+                        #remainder = -1  # Cue quitting search.
+                        #finished = 1
+                        #break
             except IndexError:
                 print ' # Stopping!\n'
                 print ' # Population search went outside maximum shell size.\n'
@@ -179,9 +183,9 @@ def returncenters(dxfilename, molar, grcutoff):
     '''
 
     conc = molar * 6.0221415E-4
-    shellindices = grid.readshellindices()
+    shellindices = pgrid.readshellindices()
     (distributions, origin, delta, gridcount) = \
-        grid.readdx([dxfilename])
+        pgrid.readdx([dxfilename])
     (popzero, totalpop, gridvolume) = converttopop(distributions[0],
             delta, conc)
     return doplacement(popzero, conc, gridvolume, origin, delta, shellindices,
