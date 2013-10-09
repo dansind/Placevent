@@ -1,10 +1,10 @@
 Placevent
 =========
 
-Placevent - 3D-RISM-based solvent and ion placement softwareCreated by Daniel Sindhikara, sindhikara@gmail.com
+Placevent - 3D-RISM-based solvent and ion placement software created by Daniel Sindhikara, sindhikara@gmail.com
 Placevent
 This program is designed to automatically place explicit solvent atoms/ions based
-on 3D-RISM data. The 3D-RISM correlations should be in a DX file
+on 3D-RISM data. Placevent is compatible with AMBER .dx files and MDF .h5 files.
 
 The details of the algorithm are described in: 
 Placevent: An algorithm for prediction of explicit solvent atom distribution -- Awpplication to HIV-1 protease and F-ATP synthase 
@@ -13,6 +13,7 @@ http://dansindhikara.com/Software/Entries/2012/6/22_Placevent_New.html
 
 If you have Numpy, this package should work out of the box. Please contact me if you have problems.
 This package requires Numpy.
+This package requires grid.py.
 
 EXAMPLE:
 Please see the tests/1L2Y/ for examples/tests

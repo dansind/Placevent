@@ -44,7 +44,7 @@ Switch to Argparse-based method
 from math import *
 import sys
 import numpy as np
-import pgrid.grid as pgrid
+import grid.grid as grid
 import ppdb.pdb as pdb
 
 
@@ -142,18 +142,22 @@ def doplacement(
                 fraction = (availablepopulation - remainder) / availablepopulation
                 remainder = 0
                 for indices in shellindices[indexradius]:
-
-                    popi[maxi + indices[0]][maxj + indices[1]][maxk
+                    try:
+                        popi[maxi + indices[0]][maxj + indices[1]][maxk
                             + indices[2]] = popi[maxi
                             + indices[0]][maxj + indices[1]][maxk
                             + indices[2]] * fraction
+                    except IndexError:
+                        pass # Don't need to adjust population outside grid
             elif remainder > -1:
-
                 # Not enough remainder in this shell, set whole shell pop to zero.
 
                 for indices in shellindices[indexradius]:
-                    popi[maxi + indices[0]][maxj + indices[1]][maxk
+                    try:
+                        popi[maxi + indices[0]][maxj + indices[1]][maxk
                             + indices[2]] = 0
+                    except IndexError:
+                        pass # Don't need to adjust population outside grid
                 remainder -= availablepopulation
                 indexradius += 1
                 if indexradius > len(shellindices):  # Search is larger than maxshells
@@ -175,25 +179,39 @@ def doplacement(
     return placedcenters
 
 
-def returncenters(dxfilename, molar, grcutoff):
+def returncenters(guvfilename, molar, grcutoff):
     '''Given distribution, returns placed atoms
 
-    Input: dxfilename and molarity
+    Input: guvfilename and molarity
     Returns: Placed centers as Atom objects
     '''
 
     conc = molar * 6.0221415E-4
-    shellindices = pgrid.readshellindices()
-    (distributions, origin, delta, gridcount) = \
-        pgrid.readdx([dxfilename])
-    (popzero, totalpop, gridvolume) = converttopop(distributions[0],
+    shellindices = grid.readshellindices()
+    if guvfilename[-3:] == ".dx":
+        (distribution, origin, delta, gridcount) = \
+            grid.readdx(guvfilename)
+    elif guvfilename[-3:] == ".h5":
+        grids = grid.h5ToGrids(guvfilename)
+        print "Warning, assuming target molecule is 'O', please contact the developer for more info."
+        if 'guv' not in grids['O'].keys():
+            exit("Error, guv distribution not found in file")
+        gGrid = grids['O']['guv']
+        distribution = gGrid.distribution
+        origin = gGrid.origin
+        delta = gGrid.deltas
+        gridcount = gGrid.gridcount
+    else:
+        exit("Error, incompatible file type! -> {0}".format(guvfilename))
+
+    (popzero, totalpop, gridvolume) = converttopop(distribution,
             delta, conc)
     return doplacement(popzero, conc, gridvolume, origin, delta, shellindices,
         grcutoff)
 
 
 def main():
-    print '# placevent.py <dxfile> <concentration M (molar)> [cutoff g(r) ' \
+    print '# placevent.py <.dx or MDF .h5 file> <concentration M (molar)> [cutoff g(r) ' \
           ' (default 1.5)]\n'
     print '# Concentration (#/A^3) ~= molarity * 6.0221415E-4'
     if len(sys.argv) < 3:
@@ -203,10 +221,10 @@ def main():
         grcutoff = float(sys.argv[3])
     else:
         grcutoff = 1.5
-    dxfilename = sys.argv[1]
+    guvfilename = sys.argv[1]
     molar = float(sys.argv[2])
-    print '# Your .dx file is', dxfilename, 'molarity is', molar, 'M'
-    placedcenters = returncenters(dxfilename, molar, grcutoff)
+    print '# Your .dx file is', guvfilename, 'molarity is', molar, 'M'
+    placedcenters = returncenters(guvfilename, molar, grcutoff)
     for center in placedcenters:
         print str(center)[:-2]  # [:-2] is to get rid of the '\n'
 
